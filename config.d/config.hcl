@@ -1,10 +1,8 @@
 listen_port = 8081
 log_level = "INFO"
-
-gateway {
-  auth_enabled = false
-  credentials_dir = ""
-}
+health_enabled = true
+auth_enabled = false
+// credentials_dir = ""
 
 // Required for function schdeuling
 nomad {

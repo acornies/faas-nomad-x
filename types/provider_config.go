@@ -7,12 +7,14 @@ import (
 )
 
 type ProviderConfig struct {
-	LogLevel   string `hcl:"log_level"`
-	ListenPort int    `hcl:"listen_port"`
-	Nomad      NomadConfig
-	Consul     ConsulConfig
-	Vault      VaultConfig
-	Gateway    GatewayConfig
+	LogLevel       string `hcl:"log_level"`
+	ListenPort     int    `hcl:"listen_port"`
+	HealthEnabled  bool   `hcl:"health_enabled"`
+	AuthEnabled    bool   `hcl:"auth_enabled"`
+	CredentialsDir string `hcl:"credentials_dir"`
+	Nomad          NomadConfig
+	Consul         ConsulConfig
+	Vault          VaultConfig
 }
 
 type NomadConfig struct {
@@ -48,11 +50,6 @@ type ConsulConfig struct {
 	DNSEnabled bool `hcl:"dns_enabled"`
 }
 
-type GatewayConfig struct {
-	AuthEnabled    bool   `hcl:"auth_enabled"`
-	CredentialsDir string `hcl:"credentials_dir"`
-}
-
 type TLSConfig struct {
 	Insecure bool
 	CAFile   string `hcl:"ca_file"`
@@ -86,7 +83,7 @@ func (pc *ProviderConfig) Default() *ProviderConfig {
 }
 
 func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
-	pc.Default()
+	pc = pc.Default()
 	fileBytes, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return nil, err
@@ -96,13 +93,23 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	// hcl.DecodeObject(decoded, hclFile.Node)
+
 	pc.ListenPort = intOrDefault(decoded.ListenPort, pc.ListenPort)
 	pc.Consul.ACLToken = stringOrDefault(decoded.Consul.ACLToken, pc.Consul.ACLToken)
 	pc.Consul.Address = stringOrDefault(decoded.Consul.Address, pc.Consul.Address)
 	pc.Consul.DNSEnabled = decoded.Consul.DNSEnabled
 	pc.Consul.TLS = decoded.Consul.TLS
+	// TODO: continue
+
 	return pc, nil
+}
+
+func (pc *ProviderConfig) LoadCommandLine(listenPort int, consulAddr, nomadAddr, vaultAddr string) *ProviderConfig {
+	pc.ListenPort = listenPort
+	pc.Consul.Address = consulAddr
+	pc.Nomad.Address = nomadAddr
+	pc.Vault.Address = vaultAddr
+	return pc
 }
 
 func stringOrDefault(value, fallback string) string {
