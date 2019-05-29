@@ -36,8 +36,8 @@ func main() {
 
 	faasConfig := &btypes.FaaSConfig{
 		TCPPort:         &providerConfig.ListenPort,
-		EnableBasicAuth: providerConfig.Gateway.AuthEnabled,
-		SecretMountPath: providerConfig.Gateway.CredentialsDir,
+		EnableBasicAuth: providerConfig.AuthEnabled,
+		SecretMountPath: providerConfig.CredentialsDir,
 	}
 
 	handlers := &btypes.FaaSHandlers{
