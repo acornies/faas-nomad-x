@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+# vim: set softtabstop=2 tabstop=2 shiftwidth=2 expandtab autoindent ft=yaml syntax=yaml:
+# service_hash is the SHA1 for the service file
+
+nomad:
+  bin_dir: '/usr/bin'
+  config_dir: '/etc/nomad'
+  version: '0.8.7'
+  service_hash: fdc512a9e7e6a55303f12d4405676ec7c8116af6
+  service: True
+  build: False
+  config:
+    data_dir: '/var/lib/nomad'
