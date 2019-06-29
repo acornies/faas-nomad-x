@@ -15,7 +15,7 @@ var (
 	consulAddr = flag.String("consul-addr", "", "Consul address override")
 	nomadAddr  = flag.String("nomad-addr", "", "Nomad address override")
 	vaultAddr  = flag.String("vault-addr", "", "Vault address override")
-	configFile = flag.String("config-file", "./config.d/config.hcl", "The provider configuration file. Either HCL or JSON format.")
+	configFile = flag.String("config-file", "./default.hcl", "The provider configuration file. Either HCL or JSON format.")
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 	file := *configFile
 	providerConfig, err := types.NewProviderConfig().LoadFile(file)
 	if err != nil {
-		log.Print("Failed to load config-file", err)
+		log.Fatal("Failed to load config-file", err)
 	}
 
 	flag.Parse()

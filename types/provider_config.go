@@ -12,17 +12,18 @@ type ProviderConfig struct {
 	HealthEnabled  bool   `hcl:"health_enabled"`
 	AuthEnabled    bool   `hcl:"auth_enabled"`
 	CredentialsDir string `hcl:"credentials_dir"`
+	DNSServers     bool   `hcl:"dns_servers"`
 	Nomad          NomadConfig
 	Consul         ConsulConfig
 	Vault          VaultConfig
 }
 
 type NomadConfig struct {
-	Address  string
-	ACLToken string `hcl:"acl_token"`
-	TLS      TLSConfig
-	Region   string
-	Driver   string
+	Address  string    `hcl:"address"`
+	ACLToken string    `hcl:"acl_token"`
+	TLS      TLSConfig `hcl:"tls"`
+	Region   string    `hcl:"region"`
+	Driver   string    `hcl:"driver"`
 }
 
 type VaultConfig struct {
@@ -44,10 +45,9 @@ type SecretConfig struct {
 }
 
 type ConsulConfig struct {
-	Address    string
-	ACLToken   string `hcl:"acl_token"`
-	TLS        TLSConfig
-	DNSEnabled bool `hcl:"dns_enabled"`
+	Address  string
+	ACLToken string `hcl:"acl_token"`
+	TLS      TLSConfig
 }
 
 type TLSConfig struct {
@@ -94,12 +94,21 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 		return nil, err
 	}
 
+	pc.LogLevel = stringOrDefault(decoded.LogLevel, pc.LogLevel)
 	pc.ListenPort = intOrDefault(decoded.ListenPort, pc.ListenPort)
+	pc.HealthEnabled = decoded.HealthEnabled
+	pc.AuthEnabled = decoded.AuthEnabled
+	pc.CredentialsDir = stringOrDefault(decoded.CredentialsDir, pc.CredentialsDir)
+
 	pc.Consul.ACLToken = stringOrDefault(decoded.Consul.ACLToken, pc.Consul.ACLToken)
 	pc.Consul.Address = stringOrDefault(decoded.Consul.Address, pc.Consul.Address)
-	pc.Consul.DNSEnabled = decoded.Consul.DNSEnabled
 	pc.Consul.TLS = decoded.Consul.TLS
-	// TODO: continue
+
+	pc.Nomad.Region = stringOrDefault(decoded.Nomad.Region, pc.Nomad.Region)
+	pc.Nomad.Driver = stringOrDefault(decoded.Nomad.Driver, pc.Nomad.Driver)
+	pc.Nomad.ACLToken = stringOrDefault(decoded.Nomad.ACLToken, pc.Nomad.ACLToken)
+	pc.Nomad.Address = stringOrDefault(decoded.Nomad.Address, pc.Nomad.Address)
+	pc.Nomad.TLS = decoded.Nomad.TLS
 
 	return pc, nil
 }
