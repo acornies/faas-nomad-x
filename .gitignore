@@ -15,3 +15,4 @@
 .terraform
 faas-nomad-x
 debug
+*.log
