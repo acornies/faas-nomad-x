@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/acornies/faas-nomad-x/handlers"
 	"github.com/acornies/faas-nomad-x/types"
+	nomadapi "github.com/hashicorp/nomad/api"
 	bootstrap "github.com/openfaas/faas-provider"
 	btypes "github.com/openfaas/faas-provider/types"
 )
@@ -34,6 +36,22 @@ func main() {
 	}
 	providerConfig.LoadCommandLine(port, consul, nomad, vault)
 
+	nomadClient, err := nomadapi.NewClient(&nomadapi.Config{
+		Address:  providerConfig.Nomad.Address,
+		Region:   providerConfig.Nomad.Region,
+		SecretID: providerConfig.Nomad.ACLToken,
+		TLSConfig: &nomadapi.TLSConfig{
+			CACert:     providerConfig.Nomad.TLS.CAFile,
+			ClientCert: providerConfig.Nomad.TLS.CertFile,
+			ClientKey:  providerConfig.Nomad.TLS.KeyFile,
+			Insecure:   providerConfig.Nomad.TLS.Insecure,
+		},
+	})
+
+	if err != nil {
+		log.Fatal("Failed to create Nomad client ", err)
+	}
+
 	faasConfig := &btypes.FaaSConfig{
 		TCPPort:         &providerConfig.ListenPort,
 		EnableBasicAuth: providerConfig.Auth.Enabled,
@@ -48,9 +66,7 @@ func main() {
 			// TODO: implement
 		},
 
-		DeployHandler: func(w http.ResponseWriter, r *http.Request) {
-			// TODO: implement
-		},
+		DeployHandler: handlers.MakeDeploy(providerConfig, nomadClient),
 
 		FunctionProxy: func(w http.ResponseWriter, r *http.Request) {
 			// TODO: implement
