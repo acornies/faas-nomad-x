@@ -24,7 +24,6 @@ func main() {
 
 	flag.Parse()
 	file := *configFile
-
 	port := *listenPort
 	consul := *consulAddr
 	nomad := *nomadAddr
@@ -36,17 +35,7 @@ func main() {
 	}
 	providerConfig.LoadCommandLine(port, consul, nomad, vault)
 
-	nomadClient, err := nomadapi.NewClient(&nomadapi.Config{
-		Address:  providerConfig.Nomad.Address,
-		Region:   providerConfig.Nomad.Region,
-		SecretID: providerConfig.Nomad.ACLToken,
-		TLSConfig: &nomadapi.TLSConfig{
-			CACert:     providerConfig.Nomad.TLS.CAFile,
-			ClientCert: providerConfig.Nomad.TLS.CertFile,
-			ClientKey:  providerConfig.Nomad.TLS.KeyFile,
-			Insecure:   providerConfig.Nomad.TLS.Insecure,
-		},
-	})
+	nomadClient, err := makeNomad(providerConfig)
 
 	if err != nil {
 		log.Fatal("Failed to create Nomad client ", err)
@@ -114,4 +103,19 @@ func configure(file string) (*types.ProviderConfig, error) {
 		config, err := config.LoadFile(file)
 		return config, err
 	}
+}
+
+func makeNomad(pc *types.ProviderConfig) (*nomadapi.Client, error) {
+
+	return nomadapi.NewClient(&nomadapi.Config{
+		Address:  pc.Nomad.Address,
+		Region:   pc.Nomad.Region,
+		SecretID: pc.Nomad.ACLToken,
+		TLSConfig: &nomadapi.TLSConfig{
+			CACert:     pc.Nomad.TLS.CAFile,
+			ClientCert: pc.Nomad.TLS.CertFile,
+			ClientKey:  pc.Nomad.TLS.KeyFile,
+			Insecure:   pc.Nomad.TLS.Insecure,
+		},
+	})
 }

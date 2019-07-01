@@ -66,7 +66,7 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 	if pc.LogLevel != "DEBUG" {
 		t.Errorf("Unexpected log_level port: %s", pc.LogLevel)
 	}
-	if pc.Nomad.Address != "127.0.0.1:4646" {
+	if pc.Nomad.Address != "http://127.0.0.1:4646" {
 		t.Errorf("Unexpected Nomad address: %s", pc.Nomad.Address)
 	}
 	if pc.Nomad.Driver != "exec" {
