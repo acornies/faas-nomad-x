@@ -10,7 +10,7 @@ auth {
 // Required for function schdeuling
 nomad {
   driver = "docker"
-  address = "127.0.0.1:4646"
+  address = "http://127.0.0.1:4646"
   acl_token = ""
   region = "global"
   tls {

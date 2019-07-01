@@ -81,12 +81,12 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 }
 
 func TestLoadCommandLine(t *testing.T) {
-	pc := setupTest().LoadCommandLine(8080, "127.0.1.1:8500", "127.0.1.1:4646", "127.0.1.1:8200")
+	pc := setupTest().LoadCommandLine(8080, "127.0.1.1:8500", "http://127.0.1.1:4646", "127.0.1.1:8200")
 
 	if pc.ListenPort != 8080 {
 		t.Errorf("Unexpected listen port from cli: %d", pc.ListenPort)
 	}
-	if pc.Nomad.Address != "127.0.1.1:4646" {
+	if pc.Nomad.Address != "http://127.0.1.1:4646" {
 		t.Errorf("Unexpected Nomad address from cli: %s", pc.Nomad.Address)
 	}
 	if pc.Consul.Address != "127.0.1.1:8500" {
@@ -99,7 +99,7 @@ func TestLoadCommandLine(t *testing.T) {
 
 func TestDefault(t *testing.T) {
 	pc := setupTest().Default()
-	if pc.Nomad.Address != "127.0.0.1:4646" {
+	if pc.Nomad.Address != "http://127.0.0.1:4646" {
 		t.Errorf("Unexpected Nomad default address: %s", pc.Nomad.Address)
 	}
 	if pc.Consul.Address != "127.0.0.1:8500" {

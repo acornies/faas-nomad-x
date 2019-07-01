@@ -78,7 +78,7 @@ func (pc *ProviderConfig) Default() *ProviderConfig {
 	}
 	pc.Nomad = NomadConfig{
 		Region:  "global",
-		Address: "127.0.0.1:4646",
+		Address: "http://127.0.0.1:4646",
 		Driver:  "docker",
 	}
 	pc.Vault = VaultConfig{
