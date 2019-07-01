@@ -2,28 +2,36 @@ package types
 
 import (
 	"io/ioutil"
+	"time"
 
 	"github.com/hashicorp/hcl"
 )
 
 type ProviderConfig struct {
-	LogLevel       string `hcl:"log_level"`
-	ListenPort     int    `hcl:"listen_port"`
-	HealthEnabled  bool   `hcl:"health_enabled"`
-	AuthEnabled    bool   `hcl:"auth_enabled"`
+	LogLevel      string `hcl:"log_level"`
+	ListenPort    int    `hcl:"listen_port"`
+	HealthEnabled bool   `hcl:"health_enabled"`
+	Auth          AuthConfig
+	DNSServers    bool `hcl:"dns_servers"`
+	Nomad         NomadConfig
+	Consul        ConsulConfig
+	Vault         VaultConfig
+	ReadTimeout   time.Duration `hcl:"read_timeout"`
+	WriteTimeout  time.Duration `hcl:"write_timeout"`
+}
+
+type AuthConfig struct {
+	Enabled        bool
+	Type           string
 	CredentialsDir string `hcl:"credentials_dir"`
-	DNSServers     bool   `hcl:"dns_servers"`
-	Nomad          NomadConfig
-	Consul         ConsulConfig
-	Vault          VaultConfig
 }
 
 type NomadConfig struct {
-	Address  string    `hcl:"address"`
-	ACLToken string    `hcl:"acl_token"`
-	TLS      TLSConfig `hcl:"tls"`
-	Region   string    `hcl:"region"`
-	Driver   string    `hcl:"driver"`
+	Address  string `hcl:"address"`
+	ACLToken string `hcl:"acl_token"`
+	TLS      TLSConfig
+	Region   string
+	Driver   string
 }
 
 type VaultConfig struct {
@@ -39,9 +47,9 @@ type AppRoleConfig struct {
 }
 
 type SecretConfig struct {
-	KeyPrefix string `hcl:"key_prefix"`
-	KVVersion int    `hcl:"kv_version"`
-	Policy    string
+	KeyPrefix  string `hcl:"key_prefix"`
+	KVVersion  int    `hcl:"kv_version"`
+	PolicyName string `hcl:"policy_name"`
 }
 
 type ConsulConfig struct {
@@ -64,19 +72,21 @@ func NewProviderConfig() *ProviderConfig {
 
 func (pc *ProviderConfig) Default() *ProviderConfig {
 	pc.ListenPort = 8081
+	pc.LogLevel = "INFO"
 	pc.Consul = ConsulConfig{
 		Address: "127.0.0.1:8500",
 	}
 	pc.Nomad = NomadConfig{
 		Region:  "global",
 		Address: "127.0.0.1:4646",
+		Driver:  "docker",
 	}
 	pc.Vault = VaultConfig{
 		Address: "127.0.0.1:8200",
 		Secrets: SecretConfig{
-			KeyPrefix: "kv/openfaas",
-			KVVersion: 2,
-			Policy:    "openfaas",
+			KeyPrefix:  "kv/openfaas",
+			KVVersion:  2,
+			PolicyName: "openfaas",
 		},
 	}
 	return pc
@@ -97,8 +107,8 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 	pc.LogLevel = stringOrDefault(decoded.LogLevel, pc.LogLevel)
 	pc.ListenPort = intOrDefault(decoded.ListenPort, pc.ListenPort)
 	pc.HealthEnabled = decoded.HealthEnabled
-	pc.AuthEnabled = decoded.AuthEnabled
-	pc.CredentialsDir = stringOrDefault(decoded.CredentialsDir, pc.CredentialsDir)
+	pc.Auth.Enabled = decoded.Auth.Enabled
+	pc.Auth.CredentialsDir = stringOrDefault(decoded.Auth.CredentialsDir, pc.Auth.CredentialsDir)
 
 	pc.Consul.ACLToken = stringOrDefault(decoded.Consul.ACLToken, pc.Consul.ACLToken)
 	pc.Consul.Address = stringOrDefault(decoded.Consul.Address, pc.Consul.Address)
@@ -110,14 +120,21 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 	pc.Nomad.Address = stringOrDefault(decoded.Nomad.Address, pc.Nomad.Address)
 	pc.Nomad.TLS = decoded.Nomad.TLS
 
+	pc.Vault.Address = stringOrDefault(decoded.Vault.Address, pc.Vault.Address)
+	pc.Vault.AppRole.RoleID = stringOrDefault(decoded.Vault.AppRole.RoleID, pc.Vault.AppRole.RoleID)
+	pc.Vault.AppRole.SecretID = stringOrDefault(decoded.Vault.AppRole.RoleID, pc.Vault.AppRole.SecretID)
+	pc.Vault.Secrets.KVVersion = intOrDefault(decoded.Vault.Secrets.KVVersion, pc.Vault.Secrets.KVVersion)
+	pc.Vault.Secrets.KeyPrefix = stringOrDefault(decoded.Vault.Secrets.KeyPrefix, pc.Vault.Secrets.KeyPrefix)
+	pc.Vault.Secrets.PolicyName = stringOrDefault(decoded.Vault.Secrets.PolicyName, pc.Vault.Secrets.PolicyName)
+	pc.Vault.TLS = decoded.Vault.TLS
 	return pc, nil
 }
 
 func (pc *ProviderConfig) LoadCommandLine(listenPort int, consulAddr, nomadAddr, vaultAddr string) *ProviderConfig {
-	pc.ListenPort = listenPort
-	pc.Consul.Address = consulAddr
-	pc.Nomad.Address = nomadAddr
-	pc.Vault.Address = vaultAddr
+	pc.ListenPort = intOrDefault(listenPort, pc.ListenPort)
+	pc.Consul.Address = stringOrDefault(consulAddr, pc.Consul.Address)
+	pc.Nomad.Address = stringOrDefault(nomadAddr, pc.Nomad.Address)
+	pc.Vault.Address = stringOrDefault(vaultAddr, pc.Nomad.Address)
 	return pc
 }
 

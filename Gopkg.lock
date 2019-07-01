@@ -28,7 +28,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:dd7888fdbc6c3dc2529f9a71a0672ccdd6c458e0cf8076db231a3a91f1092a1e"
+  digest = "1:46b495a93cdf8376591e9cfd2b25760f3a5dc6b3aac47975796073ae726dbb12"
   name = "github.com/openfaas/faas-provider"
   packages = [
     ".",
@@ -36,8 +36,8 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "376c26ef02007abb7cadbd550bb75df166764473"
-  version = "0.9.1"
+  revision = "0ca8ae603fee9736e011b81fbf02777d89a4ea85"
+  version = "0.9.2"
 
 [solve-meta]
   analyzer-name = "dep"

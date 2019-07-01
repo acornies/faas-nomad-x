@@ -11,33 +11,35 @@ import (
 )
 
 var (
-	listenPort = flag.Int("listen-port", 0, "Server listen port override")
+	listenPort = flag.Int("listen-port", 8080, "Server listen port override")
 	consulAddr = flag.String("consul-addr", "", "Consul address override")
 	nomadAddr  = flag.String("nomad-addr", "", "Nomad address override")
 	vaultAddr  = flag.String("vault-addr", "", "Vault address override")
-	configFile = flag.String("config-file", "./default.hcl", "The provider configuration file. Either HCL or JSON format.")
+	configFile = flag.String("config-file", "", "The provider configuration file. Either HCL or JSON format.")
 )
 
 func main() {
 
-	file := *configFile
-	providerConfig, err := types.NewProviderConfig().LoadFile(file)
-	if err != nil {
-		log.Fatal("Failed to load config-file", err)
-	}
-
 	flag.Parse()
+	file := *configFile
+
 	port := *listenPort
 	consul := *consulAddr
 	nomad := *nomadAddr
 	vault := *vaultAddr
 
+	providerConfig, err := configure(file)
+	if err != nil {
+		log.Printf("Error loading config file: %v. Using defaults...", err)
+	}
 	providerConfig.LoadCommandLine(port, consul, nomad, vault)
 
 	faasConfig := &btypes.FaaSConfig{
 		TCPPort:         &providerConfig.ListenPort,
-		EnableBasicAuth: providerConfig.AuthEnabled,
-		SecretMountPath: providerConfig.CredentialsDir,
+		EnableBasicAuth: providerConfig.Auth.Enabled,
+		SecretMountPath: providerConfig.Auth.CredentialsDir,
+		ReadTimeout:     providerConfig.ReadTimeout,
+		WriteTimeout:    providerConfig.WriteTimeout,
 	}
 
 	handlers := &btypes.FaaSHandlers{
@@ -74,10 +76,26 @@ func main() {
 			// TODO: implement
 		},
 
+		LogHandler: func(w http.ResponseWriter, r *http.Request) {
+			// TODO: implement
+		},
+
 		InfoHandler: func(w http.ResponseWriter, r *http.Request) {
 			// TODO: implement
 		},
 	}
 
 	bootstrap.Serve(handlers, faasConfig)
+}
+
+func configure(file string) (*types.ProviderConfig, error) {
+	config := types.NewProviderConfig()
+	if len(file) == 0 {
+		log.Print("No configuration file detected. Using defaults...")
+		config.Default()
+		return config, nil
+	} else {
+		config, err := config.LoadFile(file)
+		return config, err
+	}
 }

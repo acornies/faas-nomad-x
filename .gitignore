@@ -14,3 +14,4 @@
 .vagrant
 .terraform
 faas-nomad-x
+debug
