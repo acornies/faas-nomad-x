@@ -38,7 +38,7 @@ func TestLoadFileListenPort(t *testing.T) {
 	pc, err := setupTest().LoadFile(path)
 
 	if err != nil {
-		t.Fatalf("Failed to load test file: %s", testFile)
+		t.Fatal("Failed to load test file ", err)
 	}
 
 	t.Logf("test file %s", path)
@@ -51,13 +51,13 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 	testFile := "example-config.hcl"
 	path, err := filepath.Abs(filepath.Join("./test-fixtures", testFile))
 	if err != nil {
-		t.Fatalf("Failed to load test file: %s", testFile)
+		t.Fatal("Failed to load test file ", err)
 	}
 	t.Logf("test file %s", path)
 
 	pc, err := setupTest().LoadFile(path)
 	if err != nil {
-		t.Fatalf("Failed to load file: %s", path)
+		t.Fatal("Failed to load file ", err)
 	}
 
 	if pc.ListenPort != 8081 {
@@ -107,5 +107,21 @@ func TestDefault(t *testing.T) {
 	}
 	if pc.Vault.Address != "127.0.0.1:8200" {
 		t.Errorf("Unexpected Vault default address: %s", pc.Vault.Address)
+	}
+}
+
+func TestMakeNomadClientWithDefaults(t *testing.T) {
+	pc := setupTest().Default()
+	err := pc.MakeNomadClient()
+	if err != nil {
+		t.Error("Unexpected failure to create Nomad client using default configuration", err)
+	}
+}
+
+func TestMakeNomadClientBadAddress(t *testing.T) {
+	pc := setupTest().LoadCommandLine(0, "127.0.0.1:8500", "127.0.0.1:4646", "127.0.0.1:8200")
+	err := pc.MakeNomadClient()
+	if err == nil {
+		t.Error("Unexpected success in creation of Nomad client", err)
 	}
 }
