@@ -7,7 +7,6 @@ import (
 
 	"github.com/acornies/faas-nomad-x/handlers"
 	"github.com/acornies/faas-nomad-x/types"
-	nomadapi "github.com/hashicorp/nomad/api"
 	bootstrap "github.com/openfaas/faas-provider"
 	btypes "github.com/openfaas/faas-provider/types"
 )
@@ -35,8 +34,7 @@ func main() {
 	}
 	providerConfig.LoadCommandLine(port, consul, nomad, vault)
 
-	nomadClient, err := makeNomad(providerConfig)
-
+	err = providerConfig.MakeNomadClient()
 	if err != nil {
 		log.Fatal("Failed to create Nomad client ", err)
 	}
@@ -55,7 +53,7 @@ func main() {
 			// TODO: implement
 		},
 
-		DeployHandler: handlers.MakeDeploy(providerConfig, nomadClient),
+		DeployHandler: handlers.MakeDeploy(providerConfig),
 
 		FunctionProxy: func(w http.ResponseWriter, r *http.Request) {
 			// TODO: implement
@@ -103,19 +101,4 @@ func configure(file string) (*types.ProviderConfig, error) {
 		config, err := config.LoadFile(file)
 		return config, err
 	}
-}
-
-func makeNomad(pc *types.ProviderConfig) (*nomadapi.Client, error) {
-
-	return nomadapi.NewClient(&nomadapi.Config{
-		Address:  pc.Nomad.Address,
-		Region:   pc.Nomad.Region,
-		SecretID: pc.Nomad.ACLToken,
-		TLSConfig: &nomadapi.TLSConfig{
-			CACert:     pc.Nomad.TLS.CAFile,
-			ClientCert: pc.Nomad.TLS.CertFile,
-			ClientKey:  pc.Nomad.TLS.KeyFile,
-			Insecure:   pc.Nomad.TLS.Insecure,
-		},
-	})
 }

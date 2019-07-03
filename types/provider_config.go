@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/hcl"
+	nomadapi "github.com/hashicorp/nomad/api"
 )
 
 type ProviderConfig struct {
@@ -27,6 +28,7 @@ type AuthConfig struct {
 }
 
 type NomadConfig struct {
+	Client   *nomadapi.Client
 	Address  string `hcl:"address"`
 	ACLToken string `hcl:"acl_token"`
 	TLS      TLSConfig
@@ -136,6 +138,26 @@ func (pc *ProviderConfig) LoadCommandLine(listenPort int, consulAddr, nomadAddr,
 	pc.Nomad.Address = stringOrDefault(nomadAddr, pc.Nomad.Address)
 	pc.Vault.Address = stringOrDefault(vaultAddr, pc.Nomad.Address)
 	return pc
+}
+
+func (pc *ProviderConfig) MakeNomadClient() error {
+	client, err := nomadapi.NewClient(&nomadapi.Config{
+		Address:  pc.Nomad.Address,
+		Region:   pc.Nomad.Region,
+		SecretID: pc.Nomad.ACLToken,
+		TLSConfig: &nomadapi.TLSConfig{
+			CACert:     pc.Nomad.TLS.CAFile,
+			ClientCert: pc.Nomad.TLS.CertFile,
+			ClientKey:  pc.Nomad.TLS.KeyFile,
+			Insecure:   pc.Nomad.TLS.Insecure,
+		},
+	})
+	if err != nil {
+		return err
+	} else {
+		pc.Nomad.Client = client
+		return nil
+	}
 }
 
 func stringOrDefault(value, fallback string) string {
