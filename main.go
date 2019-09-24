@@ -22,21 +22,21 @@ var (
 func main() {
 
 	flag.Parse()
-	file := *configFile
-	port := *listenPort
-	consul := *consulAddr
-	nomad := *nomadAddr
-	vault := *vaultAddr
 
-	providerConfig, err := configure(file)
+	providerConfig, err := configure(configFile)
 	if err != nil {
 		log.Printf("Error loading config file: %v. Using defaults...", err)
 	}
-	providerConfig.LoadCommandLine(port, consul, nomad, vault)
+	providerConfig.LoadCommandLine(listenPort, consulAddr, nomadAddr, vaultAddr)
 
 	err = providerConfig.MakeNomadClient()
 	if err != nil {
 		log.Fatal("Failed to create Nomad client ", err)
+	}
+
+	err = providerConfig.MakeVaultClient()
+	if err != nil {
+		log.Print("WARN: Failed to create Vault client ", err)
 	}
 
 	faasConfig := &btypes.FaaSConfig{
@@ -91,8 +91,9 @@ func main() {
 	bootstrap.Serve(handlers, faasConfig)
 }
 
-func configure(file string) (*types.ProviderConfig, error) {
+func configure(configFile *string) (*types.ProviderConfig, error) {
 	config := types.NewProviderConfig()
+	file := *configFile
 	if len(file) == 0 {
 		log.Print("No configuration file detected. Using defaults...")
 		config.Default()

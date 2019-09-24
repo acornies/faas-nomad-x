@@ -17,7 +17,6 @@ func TestLoadFileBadSyntax(t *testing.T) {
 	if err == nil {
 		t.Errorf("Bad HCL file expected but was successful: %s", path)
 	}
-
 	t.Logf("Bad syntax in .hcl file, fallback to default: %v %v", pc, err)
 }
 
@@ -81,7 +80,13 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 }
 
 func TestLoadCommandLine(t *testing.T) {
-	pc := setupTest().LoadCommandLine(8080, "127.0.1.1:8500", "http://127.0.1.1:4646", "127.0.1.1:8200")
+	pc := setupTest()
+	port := 8080
+	consul := "127.0.1.1:8500"
+	nomad := "http://127.0.1.1:4646"
+	vault := "127.0.1.1:8200"
+
+	pc.LoadCommandLine(&port, &consul, &nomad, &vault)
 
 	if pc.ListenPort != 8080 {
 		t.Errorf("Unexpected listen port from cli: %d", pc.ListenPort)
@@ -116,12 +121,41 @@ func TestMakeNomadClientWithDefaults(t *testing.T) {
 	if err != nil {
 		t.Error("Unexpected failure to create Nomad client using default configuration", err)
 	}
+	if pc.Nomad.Client == nil {
+		t.Error("Unexpected nil reference in ProviderConfig.Vault.Nomad")
+	}
 }
 
 func TestMakeNomadClientBadAddress(t *testing.T) {
-	pc := setupTest().LoadCommandLine(0, "127.0.0.1:8500", "127.0.0.1:4646", "127.0.0.1:8200")
+	pc := setupTest()
+	port := 0
+	consul := "127.0.1.1:8500"
+	nomad := "127.0.1.1:4646"
+	vault := "127.0.1.1:8200"
+
+	pc.LoadCommandLine(&port, &consul, &nomad, &vault)
 	err := pc.MakeNomadClient()
 	if err == nil {
-		t.Error("Unexpected success in creation of Nomad client", err)
+		t.Error("Unexpected success in creation of Nomad client")
+	}
+}
+
+func TestMakeVaultClientWithDefaults(t *testing.T) {
+	pc := setupTest()
+	err := pc.MakeVaultClient()
+	if err != nil {
+		t.Error("Unexpected failure to create Vault client using default configuration", err)
+	}
+	if pc.Vault.Client == nil {
+		t.Error("Unexpected nil reference in ProviderConfig.Vault.Client")
+	}
+}
+
+func TestMakeVaultClientBadConfig(t *testing.T) {
+	pc := setupTest()
+	pc.Vault.Address = "bad!@#$%^&*()_{address}"
+	err := pc.MakeVaultClient()
+	if err == nil {
+		t.Error("Unexpected success in creation of Vault client")
 	}
 }

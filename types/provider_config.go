@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/hcl"
 	nomadapi "github.com/hashicorp/nomad/api"
+	vaultapi "github.com/hashicorp/vault/api"
 )
 
 type ProviderConfig struct {
@@ -28,15 +29,17 @@ type AuthConfig struct {
 }
 
 type NomadConfig struct {
-	Client   *nomadapi.Client
-	Address  string `hcl:"address"`
-	ACLToken string `hcl:"acl_token"`
-	TLS      TLSConfig
-	Region   string
-	Driver   string
+	Client     *nomadapi.Client
+	Address    string `hcl:"address"`
+	ACLToken   string `hcl:"acl_token"`
+	TLS        TLSConfig
+	Region     string
+	Driver     string
+	Datacenter string
 }
 
 type VaultConfig struct {
+	Client  *vaultapi.Client
 	Address string
 	TLS     TLSConfig
 	AppRole AppRoleConfig
@@ -132,11 +135,16 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 	return pc, nil
 }
 
-func (pc *ProviderConfig) LoadCommandLine(listenPort int, consulAddr, nomadAddr, vaultAddr string) *ProviderConfig {
-	pc.ListenPort = intOrDefault(listenPort, pc.ListenPort)
-	pc.Consul.Address = stringOrDefault(consulAddr, pc.Consul.Address)
-	pc.Nomad.Address = stringOrDefault(nomadAddr, pc.Nomad.Address)
-	pc.Vault.Address = stringOrDefault(vaultAddr, pc.Nomad.Address)
+func (pc *ProviderConfig) LoadCommandLine(listenPort *int, consulAddr, nomadAddr, vaultAddr *string) *ProviderConfig {
+	port := *listenPort
+	consul := *consulAddr
+	nomad := *nomadAddr
+	vault := *vaultAddr
+
+	pc.ListenPort = intOrDefault(port, pc.ListenPort)
+	pc.Consul.Address = stringOrDefault(consul, pc.Consul.Address)
+	pc.Nomad.Address = stringOrDefault(nomad, pc.Nomad.Address)
+	pc.Vault.Address = stringOrDefault(vault, pc.Nomad.Address)
 	return pc
 }
 
@@ -156,6 +164,28 @@ func (pc *ProviderConfig) MakeNomadClient() error {
 		return err
 	} else {
 		pc.Nomad.Client = client
+		if len(pc.Nomad.Datacenter) <= 0 {
+			pc.Nomad.Datacenter, _ = client.Agent().Datacenter()
+		}
+		return nil
+	}
+}
+
+func (pc *ProviderConfig) MakeVaultClient() error {
+	config := vaultapi.DefaultConfig()
+	config.ConfigureTLS(&vaultapi.TLSConfig{
+		CACert:     pc.Vault.TLS.CAFile,
+		ClientCert: pc.Vault.TLS.CertFile,
+		ClientKey:  pc.Vault.TLS.KeyFile,
+		Insecure:   pc.Vault.TLS.Insecure,
+	})
+	config.Address = pc.Vault.Address
+	client, err := vaultapi.NewClient(config)
+
+	if err != nil {
+		return err
+	} else {
+		pc.Vault.Client = client
 		return nil
 	}
 }
