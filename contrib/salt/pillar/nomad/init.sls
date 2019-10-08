@@ -1,8 +1,8 @@
 nomad:
-  version: '0.9.3'
+  version: '0.10.0-beta1'
   config_dir: '/etc/nomad.d'
   bin_dir: '/usr/local/bin'
-  service_hash: 9ac47b2dd92b232dc3f55b03ba0e756ed0e7fd95
+  service_hash: 1aea4ba5283cd79264da5c7e3214049f86f77af4
   config:
     datacenter: dc1
     # tls:

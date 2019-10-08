@@ -30,12 +30,24 @@ type AuthConfig struct {
 
 type NomadConfig struct {
 	Client     *nomadapi.Client
-	Address    string `hcl:"address"`
+	Address    string
 	ACLToken   string `hcl:"acl_token"`
 	TLS        TLSConfig
 	Region     string
 	Driver     string
 	Datacenter string
+	SchedulingDefaults
+}
+
+type SchedulingDefaults struct {
+	Replicas        int
+	Memory          int
+	CPU             int
+	RestartAttempts int
+	RestartMode     string
+	RestartDelay    int
+	Priority        int
+	DiskSize        int
 }
 
 type VaultConfig struct {

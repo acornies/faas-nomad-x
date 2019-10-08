@@ -100,15 +100,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:848cf7f9c8f8824c0419ebbd4537e8b71f9668eace568045cf4d6690864f3de0"
+  digest = "1:e3e59ce32ac0e0e3afe8b8cc267d1e59e827b28136c782b12f49221064cfdf83"
   name = "github.com/hashicorp/nomad"
   packages = [
     "api",
     "api/contexts",
   ]
   pruneopts = "UT"
-  revision = "e0fce4603bdc0e42578e5ede3b1fbafe6499d9bb"
-  version = "v0.9.3"
+  revision = "0a30814b5b7a9fabe48469935cede6beac752e15"
+  version = "v0.10.0-connect1"
 
 [[projects]]
   digest = "1:a94ed8a75bb465bae51946e5cfaac2d2cc790fb3070715325e243eccbd6b0c4b"
@@ -141,6 +141,14 @@
   pruneopts = "UT"
   revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
   version = "v1.1.2"
+
+[[projects]]
+  digest = "1:3f69624cb4ae8ab815a672f7d169d64786ee027a9d42eefab3c9d4e9debe0750"
+  name = "github.com/openfaas/faas"
+  packages = ["gateway/requests"]
+  pruneopts = "UT"
+  revision = "ced4ee56dc003cf4f3baa0954ab692f4be54f57b"
+  version = "0.14.4"
 
 [[projects]]
   digest = "1:46b495a93cdf8376591e9cfd2b25760f3a5dc6b3aac47975796073ae726dbb12"
@@ -251,6 +259,7 @@
     "github.com/hashicorp/vault/api",
     "github.com/openfaas/faas-provider",
     "github.com/openfaas/faas-provider/types",
+    "github.com/openfaas/faas/gateway/requests",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

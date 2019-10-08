@@ -367,11 +367,14 @@ type Service struct {
 	Id           string
 	Name         string
 	Tags         []string
+	Meta         map[string]string
 	CanaryTags   []string `mapstructure:"canary_tags"`
 	PortLabel    string   `mapstructure:"port"`
 	AddressMode  string   `mapstructure:"address_mode"`
 	Checks       []ServiceCheck
 	CheckRestart *CheckRestart `mapstructure:"check_restart"`
+	Connect      *ConsulConnect
+	Kind         string
 }
 
 func (s *Service) Canonicalize(t *Task, tg *TaskGroup, job *Job) {
@@ -390,6 +393,26 @@ func (s *Service) Canonicalize(t *Task, tg *TaskGroup, job *Job) {
 		s.Checks[i].CheckRestart = s.CheckRestart.Merge(check.CheckRestart)
 		s.Checks[i].CheckRestart.Canonicalize()
 	}
+}
+
+type ConsulConnect struct {
+	Native         bool
+	SidecarService *ConsulSidecarService `mapstructure:"sidecar_service"`
+}
+
+type ConsulSidecarService struct {
+	Port  string
+	Proxy *ConsulProxy
+}
+
+type ConsulProxy struct {
+	Upstreams []*ConsulUpstream
+	Config    map[string]interface{}
+}
+
+type ConsulUpstream struct {
+	DestinationName string `mapstructure:"destination_name"`
+	LocalBindPort   int    `mapstructure:"local_bind_port"`
 }
 
 // EphemeralDisk is an ephemeral disk object
@@ -493,7 +516,9 @@ type TaskGroup struct {
 	EphemeralDisk    *EphemeralDisk
 	Update           *UpdateStrategy
 	Migrate          *MigrateStrategy
+	Networks         []*NetworkResource
 	Meta             map[string]string
+	Services         []*Service
 }
 
 // NewTaskGroup creates a new TaskGroup.
@@ -603,6 +628,9 @@ func (g *TaskGroup) Canonicalize(job *Job) {
 	}
 	for _, a := range g.Affinities {
 		a.Canonicalize()
+	}
+	for _, n := range g.Networks {
+		n.Canonicalize()
 	}
 }
 

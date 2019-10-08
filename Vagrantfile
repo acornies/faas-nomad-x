@@ -61,6 +61,8 @@ Vagrant.configure("2") do |config|
     vb.memory = "2048"
     vb.cpus = 2
     override.vm.provision :salt do |salt|
+      salt.install_type = "git"
+      salt.install_args = "v2019.2.0"
       salt.minion_config = "contrib/salt/etc/minion_virtualbox.yaml"
       salt.verbose = true
       salt.run_highstate = true
@@ -74,6 +76,8 @@ Vagrant.configure("2") do |config|
     vmf.memory = "2048"
     vmf.cpus = 2
     override.vm.provision :salt do |salt|
+      salt.install_type = "git"
+      salt.install_args = "v2019.2.0"
       salt.minion_config = "contrib/salt/etc/minion_vmware.yaml"
       salt.verbose = true
       salt.run_highstate = true
