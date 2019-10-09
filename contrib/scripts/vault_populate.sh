@@ -37,3 +37,10 @@ curl -i --header "X-Vault-Token: ${TOKEN}" \
   --request POST \
   --data '{"username":"admin", "password":"vagrant"}' \
   ${VAULT_URL}/v1/secret/openfaas/auth/credentials
+
+# create approle openfaas
+curl -i \
+  --header "X-Vault-Token: ${TOKEN}" \
+  --request POST \
+  --data '{"policies": "openfaas", "period": "5m"}' \
+  ${VAULT_URL}/v1/auth/approle/role/${POLICY_NAME}

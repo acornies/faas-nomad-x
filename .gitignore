@@ -20,3 +20,5 @@ debug
 contrib/salt/states/consul
 contrib/salt/states/vault
 contrib/salt/states/nomad
+
+*.tfstate*
