@@ -61,37 +61,15 @@ Vagrant.configure("2") do |config|
     vb.memory = "2048"
     vb.cpus = 2
     override.vm.provision :salt do |salt|
-      salt.install_type = "git"
-      salt.install_args = "v2019.2.0"
       salt.minion_config = "contrib/salt/etc/minion_virtualbox.yaml"
       salt.verbose = true
       salt.run_highstate = true
       salt.salt_call_args = ["--id=vagrant"]
     end
+    # pre-populate Vault
+    override.vm.provision "shell", path: "contrib/scripts/vault_populate.sh"
   end
 
-  config.vm.provider "vmware_fusion" do |vmf, override|
-    override.vm.box = "generic/ubuntu1804"
-    vmf.gui = false
-    vmf.memory = "2048"
-    vmf.cpus = 2
-    override.vm.provision :salt do |salt|
-      salt.install_type = "git"
-      salt.install_args = "v2019.2.0"
-      salt.minion_config = "contrib/salt/etc/minion_vmware.yaml"
-      salt.verbose = true
-      salt.run_highstate = true
-      salt.salt_call_args = ["--id=vagrant"]
-    end
-  end
-
-  config.vm.provision :docker do |d|
-    d.run 'dev-vault', image: 'vault:latest',
-      args: '-p 8200:8200 -e "VAULT_DEV_ROOT_TOKEN_ID=vagrant" -v /vagrant:/vagrant'
-    d.run 'dev-consul', image: 'consul:latest',
-      cmd: 'consul agent -dev -ui -client 0.0.0.0',
-      args: '-p 8500:8500 -v /vagrant:/vagrant'
-  end
   #
   # View the documentation for the provider you are using for more
   # information on available options.
@@ -104,13 +82,15 @@ Vagrant.configure("2") do |config|
   #   apt-get install -y apache2
   # SHELL
 
+  config.vm.provision :docker do |d|
+    d.run 'dev-vault', image: 'vault:latest',
+      args: '-p 8200:8200 -e "VAULT_DEV_ROOT_TOKEN_ID=vagrant"'
+  end
+
   # add dependent git forumlas
-  config.vm.provision "shell", inline: <<-SHELL
-    rm -r /vagrant/contrib/salt/states/nomad
-    cd /vagrant/contrib/salt/states
-    git clone https://github.com/saltstack-formulas/nomad-formula.git nomad
-    cp -r nomad/nomad nomad-temp
-    rm -rf nomad
-    mv nomad-temp nomad
-  SHELL
+  config.vm.provision :salt do |salt|
+    salt.install_type = "git"
+    salt.install_args = "v2019.2.0"
+  end
+  config.vm.provision "shell", path: "contrib/scripts/formulas.py"
 end

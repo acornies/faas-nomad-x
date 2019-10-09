@@ -5,11 +5,6 @@ nomad:
   service_hash: 1aea4ba5283cd79264da5c7e3214049f86f77af4
   config:
     datacenter: dc1
-    # tls:
-    #   http: True
-    #   ca_file: /home/vagrant/placeholder-ca.crt
-    #   cert_file: /home/vagrant/placeholder.crt
-    #   key_file: /home/vagrant/placeholder.key
     data_dir: /var/lib/nomad
     log_level: DEBUG
     server:
@@ -17,33 +12,17 @@ nomad:
       bootstrap_expect: 1
       encrypt: "AaABbB+CcCdDdEeeFFfggG=="
     addresses:
-      {% if grains['provider'] == 'virtualbox' %}
       http: {{ grains['ip_interfaces']['enp0s3'][0] }}
       rpc: {{ grains['ip_interfaces']['enp0s3'][0] }}
       serf: {{ grains['ip_interfaces']['enp0s3'][0] }}
-      {% elif grains['provider'] == 'vmware' %}
-      http: {{ grains['ip_interfaces']['eth0'][0] }}
-      rpc: {{ grains['ip_interfaces']['eth0'][0] }}
-      serf: {{ grains['ip_interfaces']['eth0'][0] }}
-      {% elif grains['provider'] == 'libvirt' %}
-      http: {{ grains['ip_interfaces']['eth0'][0] }}
-      rpc: {{ grains['ip_interfaces']['eth0'][0] }}
-      serf: {{ grains['ip_interfaces']['eth0'][0] }}
-      {% endif %}
     client:
-      {% if grains['provider'] == 'virtualbox' %}
       network_interface: enp0s3
-      {% elif grains['provider'] == 'vmware' %}
-      network_interface: eth0
-      {% elif grains['provider'] == 'libvirt' %}
-      network_interface: eth0
-      {% endif %}
       enabled: true
       meta:
         service_host: "true"
         faas_host: "true"
     consul:
-      address: "127.0.0.1:8500"
+      address: "{{ grains['ip_interfaces']['enp0s3'][0] }}:8500"
       server_service_name: "nomad"
       client_service_name: "nomad-client"
       auto_advertise: true

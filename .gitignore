@@ -16,3 +16,7 @@
 faas-nomad-x
 debug
 *.log
+
+contrib/salt/states/consul
+contrib/salt/states/vault
+contrib/salt/states/nomad
