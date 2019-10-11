@@ -100,18 +100,18 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:e3e59ce32ac0e0e3afe8b8cc267d1e59e827b28136c782b12f49221064cfdf83"
+  digest = "1:4c3206e7c55566ec05379725e9f965d19eb935554e6c502ef1b2a7db1087dedb"
   name = "github.com/hashicorp/nomad"
   packages = [
     "api",
     "api/contexts",
   ]
   pruneopts = "UT"
-  revision = "0a30814b5b7a9fabe48469935cede6beac752e15"
-  version = "v0.10.0-connect1"
+  revision = "0e6af1085602b642f174f5f11ecefe737708c912"
+  version = "v0.10.0-rc1"
 
 [[projects]]
-  digest = "1:a94ed8a75bb465bae51946e5cfaac2d2cc790fb3070715325e243eccbd6b0c4b"
+  digest = "1:0a2b389fd1d4c1498ade2fdeeb12a2ae7ce877f04b659159cecb994fe5f7cc39"
   name = "github.com/hashicorp/vault"
   packages = [
     "api",
@@ -123,8 +123,8 @@
     "sdk/helper/strutil",
   ]
   pruneopts = "UT"
-  revision = "794ac15540b64b1d8e414dd783ab8a06492e8db5"
-  version = "api/v1.0.2"
+  revision = "afd9e759ca82f48444e43428605d3ecc0862b6e1"
+  version = "api/v1.0.4"
 
 [[projects]]
   digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"

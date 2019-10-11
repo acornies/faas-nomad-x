@@ -12,7 +12,7 @@ job "faas" {
         env = true
         destination  = "secrets/gateway.env"
         data = <<EOH
-functions_provider_url="http://{{ env "NOMAD_IP_http" }}:8081/"
+functions_provider_url="http://192.168.50.1:8081/"
 faas_prometheus_host="{{ env "NOMAD_IP_http" }}"
 faas_prometheus_port="9090"
 {{ range service "nats" }}

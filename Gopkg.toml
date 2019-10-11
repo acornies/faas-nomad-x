@@ -30,15 +30,15 @@
 
 [[constraint]]
   name = "github.com/hashicorp/nomad"
-  version = "v0.10.0-beta1"
+  version = "v0.10.0-rc1"
 
-[[constraint]]
-  name = "github.com/hashicorp/consul"
-  version = "v1.5.1"
+#[[constraint]]
+#  name = "github.com/hashicorp/consul"
+#  version = "v1.5.1"
 
 [[constraint]]
   name = "github.com/hashicorp/vault"
-  version = "api/v1.0.2"
+  version = "api/v1.0.4"
 
 [[constraint]]
   name = "github.com/openfaas/faas-provider"

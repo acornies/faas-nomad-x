@@ -17,11 +17,11 @@ module "faas_kafka_connector" {
 }
 
 provider "nomad" {
-  address = "http://localhost:4646"
+  address = "http://192.168.50.2:4646"
 }
 
 provider "vault" {
-  address = "http://localhost:8200"
+  address = "http://192.168.50.2:8200"
   token   = var.vault_token
 }
 

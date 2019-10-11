@@ -13,14 +13,14 @@ consul:
     bootstrap_expect: 1
     disable_update_check: True
     enable_syslog: True
-    advertise_addr: {{ grains['ip_interfaces']['enp0s3'][0] }}
+    advertise_addr: {{ grains['ip_interfaces']['enp0s8'][0] }}
     ports:
       dns: 53
       http: 8500
       grpc: 8502
     addresses:
-      http: {{ grains['ip_interfaces']['enp0s3'][0] }}
-      dns: {{ grains['ip_interfaces']['enp0s3'][0] }}
-      grpc: {{ grains['ip_interfaces']['enp0s3'][0] }}
+      http: {{ grains['ip_interfaces']['enp0s8'][0] }}
+      dns: {{ grains['ip_interfaces']['enp0s8'][0] }}
+      grpc: {{ grains['ip_interfaces']['enp0s8'][0] }}
     connect:
       enabled: True
