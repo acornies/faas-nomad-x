@@ -5,49 +5,27 @@ import (
 	"time"
 
 	"github.com/hashicorp/hcl"
-	nomadapi "github.com/hashicorp/nomad/api"
 	vaultapi "github.com/hashicorp/vault/api"
 )
 
 type ProviderConfig struct {
-	LogLevel      string `hcl:"log_level"`
-	ListenPort    int    `hcl:"listen_port"`
-	HealthEnabled bool   `hcl:"health_enabled"`
-	Auth          AuthConfig
-	DNSServers    bool `hcl:"dns_servers"`
-	Nomad         NomadConfig
-	Consul        ConsulConfig
-	Vault         VaultConfig
-	ReadTimeout   time.Duration `hcl:"read_timeout"`
-	WriteTimeout  time.Duration `hcl:"write_timeout"`
+	LogLevel       string `hcl:"log_level"`
+	ListenPort     int    `hcl:"listen_port"`
+	HealthEnabled  bool   `hcl:"health_enabled"`
+	Auth           AuthConfig
+	DNSServers     bool `hcl:"dns_servers"`
+	Nomad          NomadConfig
+	Consul         ConsulConfig
+	Vault          VaultConfig
+	FunctionPrefix string
+	ReadTimeout    time.Duration `hcl:"read_timeout"`
+	WriteTimeout   time.Duration `hcl:"write_timeout"`
 }
 
 type AuthConfig struct {
 	Enabled        bool
 	Type           string
 	CredentialsDir string `hcl:"credentials_dir"`
-}
-
-type NomadConfig struct {
-	Client     *nomadapi.Client
-	Address    string
-	ACLToken   string `hcl:"acl_token"`
-	TLS        TLSConfig
-	Region     string
-	Driver     string
-	Datacenter string
-	SchedulingDefaults
-}
-
-type SchedulingDefaults struct {
-	Replicas        int
-	Memory          int
-	CPU             int
-	RestartAttempts int
-	RestartMode     string
-	RestartDelay    int
-	Priority        int
-	DiskSize        int
 }
 
 type VaultConfig struct {
@@ -90,6 +68,7 @@ func NewProviderConfig() *ProviderConfig {
 func (pc *ProviderConfig) Default() *ProviderConfig {
 	pc.ListenPort = 8081
 	pc.LogLevel = "INFO"
+
 	pc.Consul = ConsulConfig{
 		Address: "127.0.0.1:8500",
 	}
@@ -97,6 +76,9 @@ func (pc *ProviderConfig) Default() *ProviderConfig {
 		Region:  "global",
 		Address: "http://127.0.0.1:4646",
 		Driver:  "docker",
+		Scheduling: SchedulingDefaults{
+			JobPrefix: "openfaas",
+		},
 	}
 	pc.Vault = VaultConfig{
 		Address: "127.0.0.1:8200",
@@ -158,29 +140,6 @@ func (pc *ProviderConfig) LoadCommandLine(listenPort *int, consulAddr, nomadAddr
 	pc.Nomad.Address = stringOrDefault(nomad, pc.Nomad.Address)
 	pc.Vault.Address = stringOrDefault(vault, pc.Nomad.Address)
 	return pc
-}
-
-func (pc *ProviderConfig) MakeNomadClient() error {
-	client, err := nomadapi.NewClient(&nomadapi.Config{
-		Address:  pc.Nomad.Address,
-		Region:   pc.Nomad.Region,
-		SecretID: pc.Nomad.ACLToken,
-		TLSConfig: &nomadapi.TLSConfig{
-			CACert:     pc.Nomad.TLS.CAFile,
-			ClientCert: pc.Nomad.TLS.CertFile,
-			ClientKey:  pc.Nomad.TLS.KeyFile,
-			Insecure:   pc.Nomad.TLS.Insecure,
-		},
-	})
-	if err != nil {
-		return err
-	} else {
-		pc.Nomad.Client = client
-		if len(pc.Nomad.Datacenter) <= 0 {
-			pc.Nomad.Datacenter, _ = client.Agent().Datacenter()
-		}
-		return nil
-	}
 }
 
 func (pc *ProviderConfig) MakeVaultClient() error {

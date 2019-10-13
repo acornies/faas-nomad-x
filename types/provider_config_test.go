@@ -5,14 +5,10 @@ import (
 	"testing"
 )
 
-func setupTest() *ProviderConfig {
-	return NewProviderConfig()
-}
-
 func TestLoadFileBadSyntax(t *testing.T) {
 	testFile := "bad-config.hcl"
 	path, _ := filepath.Abs(filepath.Join("./test-fixtures", testFile))
-	pc, err := setupTest().LoadFile(path)
+	pc, err := NewProviderConfig().LoadFile(path)
 
 	if err == nil {
 		t.Errorf("Bad HCL file expected but was successful: %s", path)
@@ -23,7 +19,7 @@ func TestLoadFileBadSyntax(t *testing.T) {
 func TestLoadFileBadPath(t *testing.T) {
 	testFile := "missing-config.hcl"
 	path, _ := filepath.Abs(filepath.Join("./test-fixtures", testFile))
-	pc, err := setupTest().LoadFile(path)
+	pc, err := NewProviderConfig().LoadFile(path)
 
 	if err == nil {
 		t.Errorf("Missing file exists: %s", testFile)
@@ -34,7 +30,7 @@ func TestLoadFileBadPath(t *testing.T) {
 func TestLoadFileListenPort(t *testing.T) {
 	testFile := "listen-config.hcl"
 	path, _ := filepath.Abs(filepath.Join("./test-fixtures", testFile))
-	pc, err := setupTest().LoadFile(path)
+	pc, err := NewProviderConfig().LoadFile(path)
 
 	if err != nil {
 		t.Fatal("Failed to load test file ", err)
@@ -54,7 +50,7 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 	}
 	t.Logf("test file %s", path)
 
-	pc, err := setupTest().LoadFile(path)
+	pc, err := NewProviderConfig().LoadFile(path)
 	if err != nil {
 		t.Fatal("Failed to load file ", err)
 	}
@@ -80,7 +76,7 @@ func TestLoadFileExampleWithDefaults(t *testing.T) {
 }
 
 func TestLoadCommandLine(t *testing.T) {
-	pc := setupTest()
+	pc := NewProviderConfig()
 	port := 8080
 	consul := "127.0.1.1:8500"
 	nomad := "http://127.0.1.1:4646"
@@ -103,7 +99,7 @@ func TestLoadCommandLine(t *testing.T) {
 }
 
 func TestDefault(t *testing.T) {
-	pc := setupTest().Default()
+	pc := NewProviderConfig().Default()
 	if pc.Nomad.Address != "http://127.0.0.1:4646" {
 		t.Errorf("Unexpected Nomad default address: %s", pc.Nomad.Address)
 	}
@@ -115,33 +111,8 @@ func TestDefault(t *testing.T) {
 	}
 }
 
-func TestMakeNomadClientWithDefaults(t *testing.T) {
-	pc := setupTest().Default()
-	err := pc.MakeNomadClient()
-	if err != nil {
-		t.Error("Unexpected failure to create Nomad client using default configuration", err)
-	}
-	if pc.Nomad.Client == nil {
-		t.Error("Unexpected nil reference in ProviderConfig.Vault.Nomad")
-	}
-}
-
-func TestMakeNomadClientBadAddress(t *testing.T) {
-	pc := setupTest()
-	port := 0
-	consul := "127.0.1.1:8500"
-	nomad := "127.0.1.1:4646"
-	vault := "127.0.1.1:8200"
-
-	pc.LoadCommandLine(&port, &consul, &nomad, &vault)
-	err := pc.MakeNomadClient()
-	if err == nil {
-		t.Error("Unexpected success in creation of Nomad client")
-	}
-}
-
 func TestMakeVaultClientWithDefaults(t *testing.T) {
-	pc := setupTest()
+	pc := NewProviderConfig()
 	err := pc.MakeVaultClient()
 	if err != nil {
 		t.Error("Unexpected failure to create Vault client using default configuration", err)
@@ -152,7 +123,7 @@ func TestMakeVaultClientWithDefaults(t *testing.T) {
 }
 
 func TestMakeVaultClientBadConfig(t *testing.T) {
-	pc := setupTest()
+	pc := NewProviderConfig()
 	pc.Vault.Address = "bad!@#$%^&*()_{address}"
 	err := pc.MakeVaultClient()
 	if err == nil {

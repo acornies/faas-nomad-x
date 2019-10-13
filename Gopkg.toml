@@ -34,7 +34,7 @@
 
 #[[constraint]]
 #  name = "github.com/hashicorp/consul"
-#  version = "v1.5.1"
+#  version = "v1.6.0"
 
 [[constraint]]
   name = "github.com/hashicorp/vault"
@@ -47,6 +47,10 @@
 [[constraint]]
   name = "github.com/openfaas/faas"
   version = "0.14.3"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "v1.4.0"
 
 [prune]
   go-tests = true

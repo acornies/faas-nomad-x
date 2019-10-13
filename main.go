@@ -29,7 +29,8 @@ func main() {
 	}
 	providerConfig.LoadCommandLine(listenPort, consulAddr, nomadAddr, vaultAddr)
 
-	err = providerConfig.MakeNomadClient()
+	var nomadClient types.Jobs
+	nomadClient, err = providerConfig.Nomad.MakeClient()
 	if err != nil {
 		log.Fatal("Failed to create Nomad client ", err)
 	}
@@ -53,7 +54,7 @@ func main() {
 			// TODO: implement
 		},
 
-		DeployHandler: handlers.MakeDeploy(providerConfig),
+		DeployHandler: handlers.MakeDeploy(providerConfig, nomadClient),
 
 		FunctionProxy: func(w http.ResponseWriter, r *http.Request) {
 			// TODO: implement
