@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	xtest "github.com/acornies/faas-nomad-x/testing"
 	"github.com/acornies/faas-nomad-x/types"
 	"github.com/hashicorp/nomad/api"
 	"github.com/stretchr/testify/mock"
@@ -24,7 +25,7 @@ func setup(deploy DeployTestConfig) (http.HandlerFunc, *httptest.ResponseRecorde
 	testConfig := types.ProviderConfig{}
 	testConfig.Default()
 
-	mockJobs := types.MockJobs{}
+	mockJobs := xtest.MockJobs{}
 
 	mockJobs.On("Register", mock.Anything, mock.Anything).Return(
 		&deploy.RegisterResponse,

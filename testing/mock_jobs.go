@@ -1,4 +1,4 @@
-package types
+package testing
 
 import (
 	"github.com/hashicorp/nomad/api"
