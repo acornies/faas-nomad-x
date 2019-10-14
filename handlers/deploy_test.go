@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,22 +12,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setup(method string, url string, body []byte) (http.HandlerFunc, *httptest.ResponseRecorder, *http.Request) {
+type DeployTestConfig struct {
+	Method           string
+	URL              string
+	Body             []byte
+	RegisterResponse api.JobRegisterResponse
+	RegisterError    error
+}
+
+func setup(deploy DeployTestConfig) (http.HandlerFunc, *httptest.ResponseRecorder, *http.Request) {
 	testConfig := types.ProviderConfig{}
 	testConfig.Default()
+
 	mockJobs := types.MockJobs{}
 
 	mockJobs.On("Register", mock.Anything, mock.Anything).Return(
-		&api.JobRegisterResponse{JobModifyIndex: 1},
-		nil, nil)
+		&deploy.RegisterResponse,
+		nil, deploy.RegisterError)
 
 	return MakeDeploy(&testConfig, &mockJobs), httptest.NewRecorder(),
-		httptest.NewRequest(method, url, bytes.NewReader(body))
+		httptest.NewRequest(deploy.Method, deploy.URL, bytes.NewReader(deploy.Body))
 }
 
 func TestDeployEmptyBody(t *testing.T) {
 
-	h, recorder, r := setup("POST", "/system/functions", []byte(""))
+	h, recorder, r := setup(DeployTestConfig{
+		Method: "POST",
+		URL:    "/system/functions",
+		Body:   []byte("")})
 
 	h(recorder, r)
 
@@ -35,9 +48,37 @@ func TestDeployEmptyBody(t *testing.T) {
 	}
 }
 
+func TestDeployRegisterError(t *testing.T) {
+
+	h, recorder, r := setup(DeployTestConfig{
+		Method: "POST",
+		URL:    "/system/functions",
+		Body: []byte(`
+		{
+			"service": "nodeinfo",
+			"network": "func_functions",
+			"image": "functions/nodeinfo:latest",
+			"envProcess": "node main.js"
+		}`),
+		RegisterResponse: api.JobRegisterResponse{JobModifyIndex: 1},
+		RegisterError:    errors.New("Register() returns error"),
+	})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusInternalServerError {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
 func TestDeployAllDefaultConfig(t *testing.T) {
 
-	h, recorder, r := setup("POST", "/system/functions", []byte(`
+	h, recorder, r := setup(DeployTestConfig{
+		Method:           "POST",
+		URL:              "/system/functions",
+		RegisterResponse: api.JobRegisterResponse{JobModifyIndex: 1},
+		RegisterError:    nil,
+		Body: []byte(`
 	{
 		"service": "nodeinfo",
 		"network": "func_functions",
@@ -71,7 +112,7 @@ func TestDeployAllDefaultConfig(t *testing.T) {
 			"cpu": "0.01"
 		},
 		"readOnlyRootFilesystem": true
-	}`))
+	}`)})
 
 	h(recorder, r)
 
