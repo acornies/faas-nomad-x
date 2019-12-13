@@ -30,7 +30,7 @@
 
 [[constraint]]
   name = "github.com/hashicorp/nomad"
-  version = "v0.10.0-rc1"
+  version = "v0.10.0"
 
 #[[constraint]]
 #  name = "github.com/hashicorp/consul"
@@ -51,6 +51,10 @@
 [[constraint]]
   name = "github.com/stretchr/testify"
   version = "v1.4.0"
+
+[[constraint]]
+  name = "github.com/imdario/mergo"
+  version = "v0.3.8"
 
 [prune]
   go-tests = true

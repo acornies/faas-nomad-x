@@ -79,10 +79,23 @@ func TestLoadCommandLine(t *testing.T) {
 	pc := NewProviderConfig()
 	port := 8080
 	consul := "127.0.1.1:8500"
+	consulSkip := false
 	nomad := "http://127.0.1.1:4646"
+	nomadSkip := false
 	vault := "127.0.1.1:8200"
+	vaultSkip := false
 
-	pc.LoadCommandLine(&port, &consul, &nomad, &vault)
+	override := map[string]interface{}{
+		ListenPort:          port,
+		ConsulAddr:          consul,
+		ConsulTLSSkipVerify: consulSkip,
+		NomadAddr:           nomad,
+		NomadTLSSkipVerify:  nomadSkip,
+		VaultAddr:           vault,
+		VaultTLSSkipVerify:  vaultSkip,
+	}
+
+	pc.LoadCommandLine(override)
 
 	if pc.ListenPort != 8080 {
 		t.Errorf("Unexpected listen port from cli: %d", pc.ListenPort)

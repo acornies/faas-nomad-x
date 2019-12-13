@@ -1,5 +1,5 @@
 nomad:
-  version: '0.10.0-rc1'
+  version: '0.10.2'
   config_dir: '/etc/nomad.d'
   bin_dir: '/usr/local/bin'
   service_hash: 1aea4ba5283cd79264da5c7e3214049f86f77af4
