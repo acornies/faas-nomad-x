@@ -56,7 +56,7 @@ func main() {
 		log.Fatal("Failed to create Nomad client ", err)
 	}
 
-	err = providerConfig.MakeVaultClient()
+	err = providerConfig.Vault.MakeClient()
 	if err != nil {
 		log.Print("WARN: Failed to create Vault client ", err)
 	}

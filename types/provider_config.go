@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/hcl"
-	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/imdario/mergo"
 )
 
@@ -35,14 +34,6 @@ type AuthConfig struct {
 	Enabled        bool
 	Type           string
 	CredentialsDir string `hcl:"credentials_dir"`
-}
-
-type VaultConfig struct {
-	Client  *vaultapi.Client
-	Address string
-	TLS     TLSConfig
-	AppRole AppRoleConfig
-	Secrets SecretConfig
 }
 
 type AppRoleConfig struct {
@@ -87,6 +78,8 @@ func (pc *ProviderConfig) Default() *ProviderConfig {
 		Driver:  "docker",
 		Scheduling: SchedulingDefaults{
 			JobPrefix: "openfaas",
+			JobType:   "service",
+			Count:     1,
 		},
 	}
 	pc.Vault = VaultConfig{
@@ -113,11 +106,7 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 	}
 
 	// Merge both decoded config and default config
-	err = mergo.Merge(decoded, pc)
-	if err != nil {
-		return nil, err
-	}
-
+	_ = mergo.Merge(decoded, pc)
 	return decoded, nil
 }
 
@@ -130,23 +119,4 @@ func (pc *ProviderConfig) LoadCommandLine(args map[string]interface{}) *Provider
 	pc.Vault.Address = args[VaultAddr].(string)
 	pc.Vault.TLS.Insecure = args[VaultTLSSkipVerify].(bool)
 	return pc
-}
-
-func (pc *ProviderConfig) MakeVaultClient() error {
-	config := vaultapi.DefaultConfig()
-	config.ConfigureTLS(&vaultapi.TLSConfig{
-		CACert:     pc.Vault.TLS.CAFile,
-		ClientCert: pc.Vault.TLS.CertFile,
-		ClientKey:  pc.Vault.TLS.KeyFile,
-		Insecure:   pc.Vault.TLS.Insecure,
-	})
-	config.Address = pc.Vault.Address
-	client, err := vaultapi.NewClient(config)
-
-	if err != nil {
-		return err
-	} else {
-		pc.Vault.Client = client
-		return nil
-	}
 }

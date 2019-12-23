@@ -16,7 +16,7 @@ type NomadConfig struct {
 type SchedulingDefaults struct {
 	JobType         string `hcl:"job_type"`
 	JobPrefix       string `hcl:"job_prefix"`
-	Replicas        int
+	Count           int
 	Memory          int
 	CPU             int
 	RestartAttempts int    `hcl:"restart_attempts"`

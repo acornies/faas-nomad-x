@@ -61,7 +61,7 @@ func createJob(config types.NomadConfig, r requests.CreateFunctionRequest) api.J
 // Used to create the job task groups
 func createTaskGroups(config types.NomadConfig, r requests.CreateFunctionRequest) []*api.TaskGroup {
 
-	taskCount := config.Scheduling.Replicas
+	taskCount := config.Scheduling.Count
 	restartDelay, _ := time.ParseDuration(config.Scheduling.RestartDelay)
 	restartMode := config.Scheduling.RestartMode
 	restartAttempts := config.Scheduling.RestartAttempts

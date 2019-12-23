@@ -123,23 +123,3 @@ func TestDefault(t *testing.T) {
 		t.Errorf("Unexpected Vault default address: %s", pc.Vault.Address)
 	}
 }
-
-func TestMakeVaultClientWithDefaults(t *testing.T) {
-	pc := NewProviderConfig()
-	err := pc.MakeVaultClient()
-	if err != nil {
-		t.Error("Unexpected failure to create Vault client using default configuration", err)
-	}
-	if pc.Vault.Client == nil {
-		t.Error("Unexpected nil reference in ProviderConfig.Vault.Client")
-	}
-}
-
-func TestMakeVaultClientBadConfig(t *testing.T) {
-	pc := NewProviderConfig()
-	pc.Vault.Address = "bad!@#$%^&*()_{address}"
-	err := pc.MakeVaultClient()
-	if err == nil {
-		t.Error("Unexpected success in creation of Vault client")
-	}
-}
