@@ -1,9 +1,8 @@
 package types
 
-import vaultapi "github.com/hashicorp/vault/api"
+import "github.com/hashicorp/vault/api"
 
 type VaultConfig struct {
-	Client  *vaultapi.Client
 	Address string
 	TLS     TLSConfig
 	AppRole AppRoleConfig
@@ -11,25 +10,22 @@ type VaultConfig struct {
 }
 
 func NewVaultConfig() *VaultConfig {
-	nc := &VaultConfig{}
-	return nc
+	vc := &VaultConfig{}
+	return vc
 }
 
-func (vc *VaultConfig) MakeClient() error {
-	config := vaultapi.DefaultConfig()
-	config.ConfigureTLS(&vaultapi.TLSConfig{
+func (vc *VaultConfig) MakeClient() (Client, error) {
+	config := api.DefaultConfig()
+	config.ConfigureTLS(&api.TLSConfig{
 		CACert:     vc.TLS.CAFile,
 		ClientCert: vc.TLS.CertFile,
 		ClientKey:  vc.TLS.KeyFile,
 		Insecure:   vc.TLS.Insecure,
 	})
 	config.Address = vc.Address
-	client, err := vaultapi.NewClient(config)
-
-	if err != nil {
-		return err
+	if client, err := api.NewClient(config); err != nil {
+		return nil, err
 	} else {
-		vc.Client = client
-		return nil
+		return client, nil
 	}
 }
