@@ -8,13 +8,13 @@ module "faas" {
   vault_approle_secret = module.vault.secret_id[0]
 }
 
-module "kafka" {
-  source = "./kafka"
-}
+// module "kafka" {
+//   source = "./kafka"
+// }
 
-module "faas_kafka_connector" {
-  source = "./kafka_connector"
-}
+// module "faas_kafka_connector" {
+//   source = "./kafka_connector"
+// }
 
 provider "nomad" {
   address = "http://192.168.50.2:4646"

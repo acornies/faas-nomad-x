@@ -79,10 +79,23 @@ func TestLoadCommandLine(t *testing.T) {
 	pc := NewProviderConfig()
 	port := 8080
 	consul := "127.0.1.1:8500"
+	consulSkip := false
 	nomad := "http://127.0.1.1:4646"
+	nomadSkip := false
 	vault := "127.0.1.1:8200"
+	vaultSkip := false
 
-	pc.LoadCommandLine(&port, &consul, &nomad, &vault)
+	override := map[string]interface{}{
+		ListenPort:          port,
+		ConsulAddr:          consul,
+		ConsulTLSSkipVerify: consulSkip,
+		NomadAddr:           nomad,
+		NomadTLSSkipVerify:  nomadSkip,
+		VaultAddr:           vault,
+		VaultTLSSkipVerify:  vaultSkip,
+	}
+
+	pc.LoadCommandLine(override)
 
 	if pc.ListenPort != 8080 {
 		t.Errorf("Unexpected listen port from cli: %d", pc.ListenPort)
@@ -108,25 +121,5 @@ func TestDefault(t *testing.T) {
 	}
 	if pc.Vault.Address != "127.0.0.1:8200" {
 		t.Errorf("Unexpected Vault default address: %s", pc.Vault.Address)
-	}
-}
-
-func TestMakeVaultClientWithDefaults(t *testing.T) {
-	pc := NewProviderConfig()
-	err := pc.MakeVaultClient()
-	if err != nil {
-		t.Error("Unexpected failure to create Vault client using default configuration", err)
-	}
-	if pc.Vault.Client == nil {
-		t.Error("Unexpected nil reference in ProviderConfig.Vault.Client")
-	}
-}
-
-func TestMakeVaultClientBadConfig(t *testing.T) {
-	pc := NewProviderConfig()
-	pc.Vault.Address = "bad!@#$%^&*()_{address}"
-	err := pc.MakeVaultClient()
-	if err == nil {
-		t.Error("Unexpected success in creation of Vault client")
 	}
 }

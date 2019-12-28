@@ -29,9 +29,6 @@ curl https://nomadproject.io/data/vault/nomad-cluster-role.json -O -s -L
 vault policy write nomad-server nomad-server-policy.hcl
 vault write /auth/token/roles/nomad-cluster @nomad-cluster-role.json
 
-# openfaas vault policy
-vault policy write ${POLICY_NAME} /vagrant/contrib/vault/policy.hcl
-
 # create basic auth secrets
 curl -i --header "X-Vault-Token: ${TOKEN}" \
   --request POST \

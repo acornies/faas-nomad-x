@@ -5,8 +5,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/hcl"
-	vaultapi "github.com/hashicorp/vault/api"
+	"github.com/imdario/mergo"
 )
+
+const ListenPort = "listen-port"
+const ConsulAddr = "consul-addr"
+const ConsulTLSSkipVerify = "consul-tls-skip-verify"
+const NomadAddr = "nomad-addr"
+const NomadTLSSkipVerify = "nomad-tls-skip-verify"
+const VaultAddr = "vault-addr"
+const VaultTLSSkipVerify = "vault-tls-skip-verify"
 
 type ProviderConfig struct {
 	LogLevel       string `hcl:"log_level"`
@@ -26,14 +34,6 @@ type AuthConfig struct {
 	Enabled        bool
 	Type           string
 	CredentialsDir string `hcl:"credentials_dir"`
-}
-
-type VaultConfig struct {
-	Client  *vaultapi.Client
-	Address string
-	TLS     TLSConfig
-	AppRole AppRoleConfig
-	Secrets SecretConfig
 }
 
 type AppRoleConfig struct {
@@ -78,6 +78,8 @@ func (pc *ProviderConfig) Default() *ProviderConfig {
 		Driver:  "docker",
 		Scheduling: SchedulingDefaults{
 			JobPrefix: "openfaas",
+			JobType:   "service",
+			Count:     1,
 		},
 	}
 	pc.Vault = VaultConfig{
@@ -103,74 +105,18 @@ func (pc *ProviderConfig) LoadFile(configFile string) (*ProviderConfig, error) {
 		return nil, err
 	}
 
-	pc.LogLevel = stringOrDefault(decoded.LogLevel, pc.LogLevel)
-	pc.ListenPort = intOrDefault(decoded.ListenPort, pc.ListenPort)
-	pc.HealthEnabled = decoded.HealthEnabled
-	pc.Auth.Enabled = decoded.Auth.Enabled
-	pc.Auth.CredentialsDir = stringOrDefault(decoded.Auth.CredentialsDir, pc.Auth.CredentialsDir)
-
-	pc.Consul.ACLToken = stringOrDefault(decoded.Consul.ACLToken, pc.Consul.ACLToken)
-	pc.Consul.Address = stringOrDefault(decoded.Consul.Address, pc.Consul.Address)
-	pc.Consul.TLS = decoded.Consul.TLS
-
-	pc.Nomad.Region = stringOrDefault(decoded.Nomad.Region, pc.Nomad.Region)
-	pc.Nomad.Driver = stringOrDefault(decoded.Nomad.Driver, pc.Nomad.Driver)
-	pc.Nomad.ACLToken = stringOrDefault(decoded.Nomad.ACLToken, pc.Nomad.ACLToken)
-	pc.Nomad.Address = stringOrDefault(decoded.Nomad.Address, pc.Nomad.Address)
-	pc.Nomad.TLS = decoded.Nomad.TLS
-
-	pc.Vault.Address = stringOrDefault(decoded.Vault.Address, pc.Vault.Address)
-	pc.Vault.AppRole.RoleID = stringOrDefault(decoded.Vault.AppRole.RoleID, pc.Vault.AppRole.RoleID)
-	pc.Vault.AppRole.SecretID = stringOrDefault(decoded.Vault.AppRole.RoleID, pc.Vault.AppRole.SecretID)
-	pc.Vault.Secrets.KVVersion = intOrDefault(decoded.Vault.Secrets.KVVersion, pc.Vault.Secrets.KVVersion)
-	pc.Vault.Secrets.KeyPrefix = stringOrDefault(decoded.Vault.Secrets.KeyPrefix, pc.Vault.Secrets.KeyPrefix)
-	pc.Vault.Secrets.PolicyName = stringOrDefault(decoded.Vault.Secrets.PolicyName, pc.Vault.Secrets.PolicyName)
-	pc.Vault.TLS = decoded.Vault.TLS
-	return pc, nil
+	// Merge both decoded config and default config
+	_ = mergo.Merge(decoded, pc)
+	return decoded, nil
 }
 
-func (pc *ProviderConfig) LoadCommandLine(listenPort *int, consulAddr, nomadAddr, vaultAddr *string) *ProviderConfig {
-	port := *listenPort
-	consul := *consulAddr
-	nomad := *nomadAddr
-	vault := *vaultAddr
-
-	pc.ListenPort = intOrDefault(port, pc.ListenPort)
-	pc.Consul.Address = stringOrDefault(consul, pc.Consul.Address)
-	pc.Nomad.Address = stringOrDefault(nomad, pc.Nomad.Address)
-	pc.Vault.Address = stringOrDefault(vault, pc.Nomad.Address)
+func (pc *ProviderConfig) LoadCommandLine(args map[string]interface{}) *ProviderConfig {
+	pc.ListenPort = args[ListenPort].(int)
+	pc.Consul.Address = args[ConsulAddr].(string)
+	pc.Consul.TLS.Insecure = args[ConsulTLSSkipVerify].(bool)
+	pc.Nomad.Address = args[NomadAddr].(string)
+	pc.Nomad.TLS.Insecure = args[NomadTLSSkipVerify].(bool)
+	pc.Vault.Address = args[VaultAddr].(string)
+	pc.Vault.TLS.Insecure = args[VaultTLSSkipVerify].(bool)
 	return pc
-}
-
-func (pc *ProviderConfig) MakeVaultClient() error {
-	config := vaultapi.DefaultConfig()
-	config.ConfigureTLS(&vaultapi.TLSConfig{
-		CACert:     pc.Vault.TLS.CAFile,
-		ClientCert: pc.Vault.TLS.CertFile,
-		ClientKey:  pc.Vault.TLS.KeyFile,
-		Insecure:   pc.Vault.TLS.Insecure,
-	})
-	config.Address = pc.Vault.Address
-	client, err := vaultapi.NewClient(config)
-
-	if err != nil {
-		return err
-	} else {
-		pc.Vault.Client = client
-		return nil
-	}
-}
-
-func stringOrDefault(value, fallback string) string {
-	if len(value) <= 0 {
-		return fallback
-	}
-	return value
-}
-
-func intOrDefault(value, fallback int) int {
-	if value <= 0 {
-		return fallback
-	}
-	return value
 }
