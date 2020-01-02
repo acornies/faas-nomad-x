@@ -38,15 +38,15 @@ func MakeSecrets(config *types.VaultConfig) http.HandlerFunc {
 		case http.MethodGet:
 			response, err = getSecrets(config, body)
 			break
-			// case http.MethodPost:
-			// 	response, err = createNewSecret(vs, http.MethodPost, body)
-			// 	break
-			// case http.MethodPut:
-			// 	response, err = createNewSecret(vs, http.MethodPut, body)
-			// 	break
-			// case http.MethodDelete:
-			// 	response, err = deleteSecret(vs, body)
-			// 	break
+		case http.MethodPost:
+			response, err = createNewSecret(config, http.MethodPost, body)
+			break
+		case http.MethodPut:
+			response, err = createNewSecret(config, http.MethodPut, body)
+			break
+		case http.MethodDelete:
+			response, err = deleteSecret(config, body)
+			break
 		}
 
 		if err != nil {
@@ -108,4 +108,55 @@ func getSecrets(vc *types.VaultConfig, body []byte) (resp SecretsResponse, err e
 	resultsJson, _ := json.Marshal(secrets)
 
 	return SecretsResponse{StatusCode: http.StatusOK, Body: resultsJson}, nil
+}
+
+func createNewSecret(vc *types.VaultConfig, method string, body []byte) (resp SecretsResponse, err error) {
+
+	var secret providerTypes.Secret
+	err = json.Unmarshal(body, &secret)
+	if err != nil {
+		return SecretsResponse{StatusCode: http.StatusBadRequest},
+			fmt.Errorf("Error in request json deserialisation: %s", err)
+	}
+
+	response, err := vc.DoRequest(method,
+		fmt.Sprintf("/v1/%s/%s", vc.Secrets.KeyPrefix, secret.Name),
+		map[string]interface{}{"value": secret.Value})
+
+	if err != nil {
+		return SecretsResponse{StatusCode: http.StatusInternalServerError},
+			fmt.Errorf("Error in request to Vault: %s", err)
+	}
+
+	// Vault only returns 204 type success
+	if response.StatusCode != http.StatusNoContent {
+		return SecretsResponse{StatusCode: http.StatusInternalServerError},
+			fmt.Errorf("Vault returned unexpected response: %v", response.StatusCode)
+	}
+
+	return SecretsResponse{StatusCode: http.StatusCreated}, nil
+}
+
+func deleteSecret(vc *types.VaultConfig, body []byte) (resp SecretsResponse, err error) {
+
+	var secret providerTypes.Secret
+	err = json.Unmarshal(body, &secret)
+	if err != nil {
+		return SecretsResponse{StatusCode: http.StatusBadRequest},
+			fmt.Errorf("Error in request json deserialisation: %s", err)
+	}
+
+	response, err := vc.DoRequest(http.MethodDelete,
+		fmt.Sprintf("/v1/%s/%s", vc.Secrets.KeyPrefix, secret.Name), nil)
+	if err != nil {
+		return SecretsResponse{StatusCode: http.StatusInternalServerError},
+			fmt.Errorf("Error in request to Vault: %s", err)
+	}
+
+	if response.StatusCode != http.StatusNoContent {
+		return SecretsResponse{StatusCode: http.StatusInternalServerError},
+			fmt.Errorf("Vault returned unexpected response: %v", response.StatusCode)
+	}
+
+	return SecretsResponse{StatusCode: http.StatusNoContent}, nil
 }

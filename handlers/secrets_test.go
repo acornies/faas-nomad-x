@@ -14,12 +14,10 @@ import (
 )
 
 type SecretsTestConfig struct {
-	Method          string
-	URL             string
-	Body            []byte
-	Config          types.VaultConfig
-	SecretsResponse SecretsResponse
-	SecretsError    error
+	Method string
+	URL    string
+	Body   []byte
+	Config types.VaultConfig
 }
 
 // Unapologetically taken from:
@@ -45,8 +43,8 @@ func createTestVault(t *testing.T) (net.Listener, *api.Client) {
 	client.SetToken(rootToken)
 
 	// Setup required secrets, policies, etc.
-	_, err = client.Logical().Write("secret/openfaas", map[string]interface{}{
-		"secret": "bar",
+	_, err = client.Logical().Write("secret/openfaas/cows", map[string]interface{}{
+		"value": "changeme",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -57,6 +55,10 @@ func createTestVault(t *testing.T) (net.Listener, *api.Client) {
 
 func setupSecrets(t *testing.T, secrets SecretsTestConfig) (http.HandlerFunc, *httptest.ResponseRecorder, *http.Request) {
 
+	// memory core Vault default secret backend
+	secrets.Config.Secrets.KeyPrefix = "secret/openfaas"
+	secrets.Config.Secrets.KVVersion = 1
+
 	return MakeSecrets(&secrets.Config), httptest.NewRecorder(),
 		httptest.NewRequest(secrets.Method, secrets.URL, bytes.NewReader(secrets.Body))
 }
@@ -65,9 +67,7 @@ func TestListSecrets(t *testing.T) {
 
 	ln, client := createTestVault(t)
 	providerConfig := types.NewProviderConfig().Default()
-	// memory core Vault default secret backend
-	providerConfig.Vault.Secrets.KeyPrefix = "secret/openfaas"
-	providerConfig.Vault.Secrets.KVVersion = 1
+
 	providerConfig.Vault.Client = client
 	defer ln.Close()
 
@@ -79,6 +79,74 @@ func TestListSecrets(t *testing.T) {
 	h(recorder, r)
 
 	if recorder.Code != http.StatusOK {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestCreateSecret(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "POST",
+		URL:    "/system/secrets",
+		Body: []byte(`
+		{
+			"name": "figlet",
+			"value": "changme"
+		}`)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusCreated {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestUpdateSecret(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "PUT",
+		URL:    "/system/secrets",
+		Body: []byte(`
+		{
+			"name": "cows",
+			"value": "changed"
+		}`)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusCreated {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestDeleteSecret(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "DELETE",
+		URL:    "/system/secrets",
+		Body: []byte(`
+		{
+			"name": "cows"
+		}`)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusNoContent {
 		t.Errorf("Unexpected response code %d", recorder.Code)
 	}
 }
