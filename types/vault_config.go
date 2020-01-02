@@ -11,7 +11,7 @@ import (
 )
 
 type VaultConfig struct {
-	Client  Client
+	Client  *api.Client
 	Address string
 	TLS     TLSConfig
 	AppRole AppRoleConfig
@@ -23,7 +23,7 @@ func NewVaultConfig() *VaultConfig {
 	return vc
 }
 
-func (vc *VaultConfig) MakeClient() (Client, error) {
+func (vc *VaultConfig) MakeClient() (*api.Client, error) {
 	config := api.DefaultConfig()
 	config.ConfigureTLS(&api.TLSConfig{
 		CACert:     vc.TLS.CAFile,

@@ -71,8 +71,13 @@ func MakeSecrets(config *types.VaultConfig) http.HandlerFunc {
 
 func getSecrets(vc *types.VaultConfig, body []byte) (resp SecretsResponse, err error) {
 
-	response, _ := vc.DoRequest("LIST",
+	response, err := vc.DoRequest("LIST",
 		fmt.Sprintf("/v1/%s", vc.Secrets.KeyPrefix), nil)
+
+	if err != nil {
+		return SecretsResponse{StatusCode: http.StatusInternalServerError},
+			fmt.Errorf("Error reading response body: %s", err)
+	}
 
 	// If Vault finds nothing, return StatusOK according to gateway API docs
 	if response.StatusCode == http.StatusNotFound {
@@ -83,16 +88,16 @@ func getSecrets(vc *types.VaultConfig, body []byte) (resp SecretsResponse, err e
 	}
 
 	var secretList api.Secret
-	secretsBody, bodyErr := ioutil.ReadAll(response.Body)
-	if bodyErr != nil {
+	secretsBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
 		return SecretsResponse{StatusCode: http.StatusInternalServerError},
-			fmt.Errorf("Error reading response body: %s", bodyErr)
+			fmt.Errorf("Error reading response body: %s", err)
 	}
 
-	unmarshalErr := json.Unmarshal(secretsBody, &secretList)
-	if unmarshalErr != nil {
+	err = json.Unmarshal(secretsBody, &secretList)
+	if err != nil {
 		return SecretsResponse{StatusCode: http.StatusInternalServerError},
-			fmt.Errorf("Error in json deserialisation: %s", unmarshalErr)
+			fmt.Errorf("Error in json deserialisation: %s", err)
 	}
 
 	secrets := []providerTypes.Secret{}

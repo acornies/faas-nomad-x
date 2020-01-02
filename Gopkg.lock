@@ -10,6 +10,14 @@
   version = "v1.4.0"
 
 [[projects]]
+  digest = "1:af6e785bedb62fc2abb81977c58a7a44e5cf9f7e41b8d3c8dd4d872edea0ce08"
+  name = "github.com/NYTimes/gziphandler"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "dd0439581c7657cb652dfe5c71d7d48baf39541d"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:6e5c185e8d31660ed469b1da14650753ec228c6ef4e2c45c075bf48b927c6520"
   name = "github.com/armon/go-metrics"
   packages = ["."]
@@ -40,6 +48,14 @@
   pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:f4f6279cb37479954644babd8f8ef00584ff9fa63555d2c6718c1c3517170202"
+  name = "github.com/elazarl/go-bindata-assetfs"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:938a2672d6ebbb7f7bc63eee3e4b9464c16ffcf77ec8913d3edbf32b4e3984dd"
@@ -289,7 +305,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:24ad911421a56bb88749bbcb70a6ccade3028d8aac85e3e6b2ecef03a3a2f391"
+  digest = "1:b6ec593d16485ebfa734751a3ccdb65b7d2ec7238f8113dca12b01ddfde53e01"
   name = "github.com/hashicorp/vault"
   packages = [
     "api",
@@ -304,6 +320,7 @@
     "helper/reload",
     "helper/storagepacker",
     "helper/xor",
+    "http",
     "physical/raft",
     "physical/raft/logstore",
     "plugins/database/mysql",
@@ -769,6 +786,7 @@
     "github.com/hashicorp/hcl",
     "github.com/hashicorp/nomad/api",
     "github.com/hashicorp/vault/api",
+    "github.com/hashicorp/vault/http",
     "github.com/hashicorp/vault/vault",
     "github.com/imdario/mergo",
     "github.com/openfaas/faas-provider",
