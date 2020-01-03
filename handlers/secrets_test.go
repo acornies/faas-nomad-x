@@ -96,7 +96,7 @@ func TestCreateSecret(t *testing.T) {
 		Body: []byte(`
 		{
 			"name": "figlet",
-			"value": "changme"
+			"value": "changeme"
 		}`)})
 
 	h(recorder, r)
@@ -147,6 +147,81 @@ func TestDeleteSecret(t *testing.T) {
 	h(recorder, r)
 
 	if recorder.Code != http.StatusNoContent {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestBadRequest(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "BLAH",
+		URL:    "/system/secrets",
+		Body:   []byte(``)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestFailedVaultRequest(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	ln.Close() // intentionally shut down
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "GET",
+		URL:    "/system/secrets"})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusInternalServerError {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestBadCreateUpdateSecret(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "POST",
+		URL:    "/system/secrets",
+		Body:   []byte(``)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Errorf("Unexpected response code %d", recorder.Code)
+	}
+}
+
+func TestBadDeleteSecret(t *testing.T) {
+	ln, client := createTestVault(t)
+	providerConfig := types.NewProviderConfig().Default()
+	providerConfig.Vault.Client = client
+	defer ln.Close()
+
+	h, recorder, r := setupSecrets(t, SecretsTestConfig{
+		Config: providerConfig.Vault,
+		Method: "DELETE",
+		URL:    "/system/secrets",
+		Body:   []byte(``)})
+
+	h(recorder, r)
+
+	if recorder.Code != http.StatusBadRequest {
 		t.Errorf("Unexpected response code %d", recorder.Code)
 	}
 }

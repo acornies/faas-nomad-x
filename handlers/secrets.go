@@ -26,14 +26,9 @@ func MakeSecrets(config *types.VaultConfig) http.HandlerFunc {
 
 		defer r.Body.Close()
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, _ := ioutil.ReadAll(r.Body)
 
-		if err != nil {
-			log.Println("Couldn't read body of a request", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
+		var err error
 		switch r.Method {
 		case http.MethodGet:
 			response, err = getSecrets(config, body)
@@ -47,6 +42,9 @@ func MakeSecrets(config *types.VaultConfig) http.HandlerFunc {
 		case http.MethodDelete:
 			response, err = deleteSecret(config, body)
 			break
+		default:
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
 		if err != nil {
@@ -77,14 +75,6 @@ func getSecrets(vc *types.VaultConfig, body []byte) (resp SecretsResponse, err e
 	if err != nil {
 		return SecretsResponse{StatusCode: http.StatusInternalServerError},
 			fmt.Errorf("Error reading response body: %s", err)
-	}
-
-	// If Vault finds nothing, return StatusOK according to gateway API docs
-	if response.StatusCode == http.StatusNotFound {
-		return SecretsResponse{
-			StatusCode: http.StatusOK,
-			Body:       []byte(`[]`),
-		}, nil
 	}
 
 	var secretList api.Secret

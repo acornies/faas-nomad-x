@@ -7,7 +7,7 @@ language: go
 # services:
 #   - docker
 go:
-  - "1.11.x"
+  - "1.12.x"
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
   - chmod +x ./cc-test-reporter

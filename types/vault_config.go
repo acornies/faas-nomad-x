@@ -50,10 +50,6 @@ func (vc *VaultConfig) Login() (*api.Secret, error) {
 		return &vaultLogin, err
 	}
 
-	if lResp.StatusCode != http.StatusOK {
-		return &vaultLogin, fmt.Errorf("Vault response status code %v", lResp.StatusCode)
-	}
-
 	lBody, _ := ioutil.ReadAll(lResp.Body)
 	err = json.Unmarshal(lBody, &vaultLogin)
 	if err != nil {
