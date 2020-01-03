@@ -10,18 +10,20 @@ import (
 
 	"github.com/acornies/faas-nomad-x/types"
 	"github.com/hashicorp/nomad/api"
-	"github.com/openfaas/faas/gateway/requests"
+	providerTypes "github.com/openfaas/faas-provider/types"
 )
 
 func MakeDeploy(config *types.ProviderConfig, client types.Jobs) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		defer r.Body.Close()
+
 		body, _ := ioutil.ReadAll(r.Body)
 
 		// Parse the OpenFaaS create function request and map it
 		// to Nomad job service type
-		req := requests.CreateFunctionRequest{}
+		req := providerTypes.FunctionDeployment{}
 		err := json.Unmarshal(body, &req)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -44,7 +46,7 @@ func MakeDeploy(config *types.ProviderConfig, client types.Jobs) http.HandlerFun
 
 // Use NomadConfig to set default job config
 // then the mapped values from functionRequest as job overrides
-func createJob(config types.NomadConfig, r requests.CreateFunctionRequest) api.Job {
+func createJob(config types.NomadConfig, r providerTypes.FunctionDeployment) api.Job {
 	t := &config.Scheduling.JobType
 	priority := &config.Scheduling.Priority
 	jobName := fmt.Sprintf("%s-%s", config.Scheduling.JobPrefix, r.Service)
@@ -59,7 +61,7 @@ func createJob(config types.NomadConfig, r requests.CreateFunctionRequest) api.J
 }
 
 // Used to create the job task groups
-func createTaskGroups(config types.NomadConfig, r requests.CreateFunctionRequest) []*api.TaskGroup {
+func createTaskGroups(config types.NomadConfig, r providerTypes.FunctionDeployment) []*api.TaskGroup {
 
 	taskCount := config.Scheduling.Count
 	restartDelay, _ := time.ParseDuration(config.Scheduling.RestartDelay)

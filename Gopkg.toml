@@ -38,15 +38,19 @@
 
 [[constraint]]
   name = "github.com/hashicorp/vault"
-  version = "api/v1.0.4"
+  version = "sdk/v0.1.13"
+
+[[override]]
+  name = "github.com/Jeffail/gabs"
+  version = "v1.1.1"
 
 [[constraint]]
   name = "github.com/openfaas/faas-provider"
-  version = "0.9.2"
+  version = "0.13.3"
 
-[[constraint]]
-  name = "github.com/openfaas/faas"
-  version = "0.14.3"
+#[[constraint]]
+#  name = "github.com/openfaas/faas"
+#  version = "0.18.2"
 
 [[constraint]]
   name = "github.com/stretchr/testify"
@@ -59,3 +63,8 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+  [[prune.project]]
+    name = "github.com/shirou/gopsutil"
+    non-go = false
+    unused-packages = false

@@ -21,7 +21,7 @@ type DeployTestConfig struct {
 	RegisterError    error
 }
 
-func setupDeploy(deploy DeployTestConfig) (http.HandlerFunc, *httptest.ResponseRecorder, *http.Request) {
+func setup(deploy DeployTestConfig) (http.HandlerFunc, *httptest.ResponseRecorder, *http.Request) {
 	testConfig := types.ProviderConfig{}
 	testConfig.Default()
 
@@ -37,7 +37,7 @@ func setupDeploy(deploy DeployTestConfig) (http.HandlerFunc, *httptest.ResponseR
 
 func TestDeployEmptyBody(t *testing.T) {
 
-	h, recorder, r := setupDeploy(DeployTestConfig{
+	h, recorder, r := setup(DeployTestConfig{
 		Method: "POST",
 		URL:    "/system/functions",
 		Body:   []byte("")})
@@ -51,7 +51,7 @@ func TestDeployEmptyBody(t *testing.T) {
 
 func TestDeployRegisterError(t *testing.T) {
 
-	h, recorder, r := setupDeploy(DeployTestConfig{
+	h, recorder, r := setup(DeployTestConfig{
 		Method: "POST",
 		URL:    "/system/functions",
 		Body: []byte(`
@@ -74,7 +74,7 @@ func TestDeployRegisterError(t *testing.T) {
 
 func TestDeployAllDefaultConfig(t *testing.T) {
 
-	h, recorder, r := setupDeploy(DeployTestConfig{
+	h, recorder, r := setup(DeployTestConfig{
 		Method:           "POST",
 		URL:              "/system/functions",
 		RegisterResponse: api.JobRegisterResponse{JobModifyIndex: 1},

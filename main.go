@@ -56,8 +56,7 @@ func main() {
 		log.Fatal("Failed to create Nomad client ", err)
 	}
 
-	var vaultClient types.Client
-	vaultClient, err = providerConfig.Vault.MakeClient()
+	_, err = providerConfig.Vault.Login()
 	if err != nil {
 		log.Print("WARN: Failed to create Vault client ", err)
 	}
@@ -82,7 +81,7 @@ func main() {
 
 		ReplicaUpdater: func(w http.ResponseWriter, r *http.Request) {},
 
-		SecretHandler: handlers.MakeSecrets(providerConfig, vaultClient),
+		SecretHandler: handlers.MakeSecrets(&providerConfig.Vault),
 
 		DeleteHandler: func(w http.ResponseWriter, r *http.Request) {},
 

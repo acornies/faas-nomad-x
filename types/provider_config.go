@@ -39,6 +39,7 @@ type AuthConfig struct {
 type AppRoleConfig struct {
 	RoleID   string `hcl:"role_id"`
 	SecretID string `hcl:"secret_id"`
+	Path     string
 }
 
 type SecretConfig struct {
